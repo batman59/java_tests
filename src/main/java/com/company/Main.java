@@ -34,13 +34,55 @@ public class Main {
     public static void main(String[] args) throws IOException, DocumentException {
         File file = new File(src);
         file.getParentFile().mkdirs();
-        new SmallTable().manipulatePdf(src, save);
+        Billing bill = new Billing();
+        bill.setClient("Josef Yakopow");
+        bill.setDate("15/03/18");
+        bill.setReference("F16-5845");
+
+        Trainee t1 = new Trainee("Test1", "Test1");
+        Trainee t2 = new Trainee("Test2", "Test2");
+        Trainee t3 = new Trainee("Test3", "Test3");
+        Trainee t4 = new Trainee("Test4", "Test4");
+
+        Convention con1 = new Convention("SP1111", "CV17-4945", "12/05/17", "18/01/18", "10", "50", "820", "7800 €", "testestestestestest");
+        Convention con2 = new Convention("SP2222", "CV17-4988", "12/06/17", "18/02/18", "11", "51", "821", "8800 €", "testestestestestest");
+        Convention con3 = new Convention("SP3333", "CV17-4977", "12/07/17", "18/03/18", "20", "52", "822", "9800 €", "testestestestestest");
+        Convention con4 = new Convention("SP4444", "CV17-4966", "12/08/17", "18/04/18", "30", "53", "823", "10800 €", "testestestestestest");
+        Convention con5 = new Convention("SP5555", "CV17-4955", "12/09/17", "18/05/18", "40", "54", "824", "11800 €", "testestestestestest");
+
+        con1.getTraineeList().add(t1);
+        con2.getTraineeList().add(t1);
+        con2.getTraineeList().add(t2);
+        con3.getTraineeList().add(t1);
+        con3.getTraineeList().add(t2);
+        con3.getTraineeList().add(t3);
+        con4.getTraineeList().add(t1);
+        con4.getTraineeList().add(t2);
+        con4.getTraineeList().add(t3);
+        con4.getTraineeList().add(t4);
+        con5.getTraineeList().add(t1);
+        con5.getTraineeList().add(t1);
+        con5.getTraineeList().add(t1);
+        con5.getTraineeList().add(t1);
+        con5.getTraineeList().add(t1);
+        con5.getTraineeList().add(t1);
+        con5.getTraineeList().add(t1);
+
+
+        bill.getConventionList().add(con1);
+        bill.getConventionList().add(con2);
+        bill.getConventionList().add(con3);
+        bill.getConventionList().add(con4);
+        bill.getConventionList().add(con5);
+
+
+        new SmallTable().manipulatePdf(src, save, bill);
     }
 
     public static class SmallTable {
 
 
-        public void manipulatePdf(String src, String save) throws DocumentException, IOException {
+        public void manipulatePdf(String src, String save, Billing bill) throws DocumentException, IOException {
             /*ByteArrayOutputStream file = new ByteArrayOutputStream();*/
 
             /**
@@ -55,26 +97,28 @@ public class Main {
             Font font = FontFactory.getFont(FontFactory.defaultEncoding, 8, 1, BaseColor.WHITE);
             Font fontBlack = FontFactory.getFont(FontFactory.defaultEncoding, 8, 1, BaseColor.BLACK);
             ColumnText column = new ColumnText(stamper.getOverContent(1));
-            Rectangle rectPage1 = new Rectangle(5,105,600,600);
+            Rectangle rectPage1 = new Rectangle(5, 105, 600, 600);
             column.setSimpleColumn(rectPage1);
 
-
-
-
-
+            PdfPTable footer = new PdfPTable(3);
+            footer.setWidths(new int[]{1, 3, 1});
 
             /**
              * create table structure
              */
 
-            for (int j = 0; j < 9; j++) {
+            for (Convention c : bill.getConventionList()) {
 
                 PdfPTable table = new PdfPTable(8);
                 table.setWidths(new int[]{4, 3, 1, 1, 1, 1, 2, 2});
                 table.setKeepTogether(true);
+
+
                 PdfPTable title = new PdfPTable(2);
                 title.setWidths(new int[]{2, 3});
                 PdfPTable total = new PdfPTable(1);
+
+
                 table.setHeaderRows(1);
                 total.setHeaderRows(1);
 
@@ -97,23 +141,15 @@ public class Main {
 
                 }
 
-                for (int i = 1; i <= 16; i++) {
-
-                    if (i<9)
-                    table.addCell(new PdfPCell(new Paragraph("test" + i, fontBlack))).setBorderWidth((float) 0.6);
-                    else
-                        table.addCell(new PdfPCell(new Paragraph("test" + i, fontBlack))).setBorderWidth((float) 0.6);
-                }
                 for (int k = 0; k < 2; k++) {
 
 
-                    if (k==0) {
-                        PdfPCell cell = new PdfPCell(new Paragraph(("Session: SP3714                       Convention : CV17-4945"), font));
+                    if (k == 0) {
+                        PdfPCell cell = new PdfPCell(new Paragraph(("Session: " + c.getSession() + "                       Convention : " + c.getConvention()), font));
                         cell.setBackgroundColor(new BaseColor(139, 79, 91));
                         cell.setBorderWidth((float) 0.6);
                         title.addCell(cell);
-                    }
-                    else{
+                    } else {
                         PdfPCell cell = new PdfPCell(new Paragraph());
                         cell.setBackgroundColor(new BaseColor(255, 255, 255));
                         cell.setBorderWidth((float) 0);
@@ -121,6 +157,20 @@ public class Main {
 
 
                     }
+
+                }
+
+                for (int i = 1; i <= c.getTraineeList().size(); i++) {
+
+                    table.addCell(new PdfPCell(new Paragraph(c.getDesignation(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getTraineeList().get(i - 1).getFname(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getStart(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getEnd(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getQuantity(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getUnit(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getPu(), fontBlack))).setBorderWidth((float) 0.6);
+                    table.addCell(new PdfPCell(new Paragraph(c.getHt(), fontBlack))).setBorderWidth((float) 0.6);
+
 
                 }
 
@@ -133,10 +183,15 @@ public class Main {
                 title.setSpacingBefore(28);
                 table.setSpacingBefore(10);
 
+
                 total.addCell(new PdfPCell(title)).setBorderWidth(0);
                 total.addCell(new PdfPCell(table)).setBorderWidth(0);
+
+
+
                 /*total.addCell(table);*/
                 column.addElement(total);
+
 
               /*  column.addElement(title);
                 column.addElement(table);
@@ -145,28 +200,24 @@ public class Main {
                 int pagecount = 1;
                 int status = column.go();
                 while (ColumnText.hasMoreText(status)) {
-                    status = triggerNewPage(stamper, pagesize, column, rectPage1, ++pagecount,reader);
+                    status = triggerNewPage(stamper, pagesize, column, rectPage1, ++pagecount, reader);
                 }
             }
+            for (int g=0;g<12;g++){
+                footer.addCell(new PdfPCell(new Paragraph("TEST"+g, fontBlack))).setBorderWidth((float) 0.6);
 
+
+            }
+            footer.setWidthPercentage(100);
+            column.addElement(footer);
 
             stamper.close();
             reader.close();
 
-         /*   FacesContext context = FacesContext.getCurrentInstance();
-            HttpServletResponse res = (HttpServletResponse) context.getExternalContext().getResponse();
-            res.reset();
-            res.setContentType("application/pdf");
-            res.setHeader("Content-disposition", "inline;filename=test.pdf");
 
-            OutputStream out = res.getOutputStream();
-            file.writeTo(out);
-            out.flush();
-            out.close();
-            context.responseComplete();*/
         }
 
-        public int triggerNewPage(PdfStamper stamper, Rectangle pagesize, ColumnText column, Rectangle rect, int pagecount,PdfReader reader) throws DocumentException, IOException {
+        public int triggerNewPage(PdfStamper stamper, Rectangle pagesize, ColumnText column, Rectangle rect, int pagecount, PdfReader reader) throws DocumentException, IOException {
 
             PdfReader reader1 = new PdfReader(src2);
             PdfImportedPage page = stamper.getImportedPage(reader, 1);
